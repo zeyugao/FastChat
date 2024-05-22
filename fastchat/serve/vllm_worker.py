@@ -42,6 +42,7 @@ class VLLMWorker(BaseModelWorker):
         no_register: bool,
         llm_engine: AsyncLLMEngine,
         conv_template: str,
+        chat_template: str,
     ):
         super().__init__(
             controller_addr,
@@ -61,7 +62,7 @@ class VLLMWorker(BaseModelWorker):
         # and llm_engine.engine.tokenizer was no longer a raw tokenizer
         if hasattr(self.tokenizer, "tokenizer"):
             self.tokenizer = llm_engine.engine.tokenizer.tokenizer
-        self._load_chat_template(chat_template=None)
+        self._load_chat_template(chat_template=chat_template)
         try:
             self.generation_config = GenerationConfig.from_pretrained(
                 model_path, trust_remote_code=True
@@ -323,6 +324,7 @@ if __name__ == "__main__":
     parser.add_argument("--limit-worker-concurrency", type=int, default=1024)
     parser.add_argument("--no-register", action="store_true")
     parser.add_argument("--num-gpus", type=int, default=1)
+    parser.add_argument("--chat_template", type=str, default=None)
     parser.add_argument(
         "--conv-template", type=str, default=None, help="Conversation prompt template."
     )
@@ -363,5 +365,6 @@ if __name__ == "__main__":
         args.no_register,
         engine,
         args.conv_template,
+        args.chat_template,
     )
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
